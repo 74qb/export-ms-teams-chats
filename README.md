@@ -44,7 +44,7 @@ See [Microsoft&#39;s guide on installing PowerShell on Linux](https://learn.micr
 Open a PowerShell terminal. Type or copy the following into the terminal and hit enter.
 
 ```
-irm https://raw.githubusercontent.com/evenevan/export-ms-teams-chats/main/ps.ps1 | iex
+irm https://raw.githubusercontent.com/74qb/export-ms-teams-chats/main/ps.ps1 | iex
 ```
 
 <details>
@@ -52,7 +52,7 @@ irm https://raw.githubusercontent.com/evenevan/export-ms-teams-chats/main/ps.ps1
 
   **Only use this method if the above doesn't work for you. This is almost certainly more difficult. The second method will allow you to pass paremeters to the script.**
 
-  [Download my code](https://github.com/evenevan/export-ms-teams-chats/archive/refs/heads/main.zip). Then, extract the downloaded folder to wherever is convenient to you.
+  [Download my code](https://github.com/74qb/export-ms-teams-chats/archive/refs/heads/main.zip). Then, extract the downloaded folder to wherever is convenient to you.
 
 #### [Easier] Windows - Through File Explorer
 
