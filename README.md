@@ -72,9 +72,15 @@ irm https://raw.githubusercontent.com/evenevan/export-ms-teams-chats/main/ps.ps1
 
 ### 3. Authenticate
 
-The script will ask you to authenticate an app named PnP Management Shell. Follow the instructions given. Sign in with your work/school email. If copying the device code, be careful as Ctrl + C is the same shortcut that halts the terminal; only press Ctrl + C once to copy.
+his script requires an access token to function. In many corporate environments, third-party applications are restricted, so a common workaround is to manually obtain a token via the Microsoft Graph Explorer:
 
-If you run into issues with authentication, specifically with permissions requiring admin consent, there is not much I can do.
+🔗 [Microsoft Graph Explorer](https://developer.microsoft.com/en-us/graph/graph-explorer)
+
+### Steps:
+1. Log in using your corporate account.
+2. Click the **"Access token"** button to generate and then **"Copy"** button to get your access token.
+3. Paste the token into the script when prompted.
+4. As the import may take a relatively long time, the script will actively prompt you to provide a new token if the current one is about to expire.
 
 ### 4. Wait
 
