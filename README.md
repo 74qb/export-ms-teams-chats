@@ -41,9 +41,6 @@ See [Microsoft&#39;s guide on installing PowerShell on Linux](https://learn.micr
 
 ### 2. Run the Script
 
-  <summary>Legacy/Alternate Method</summary>
-
-
   [Download my code](https://github.com/74qb/export-ms-teams-chats/archive/refs/heads/main.zip). Then, extract the downloaded folder to wherever is convenient to you.
 
 #### [Easier] Windows - Through File Explorer
