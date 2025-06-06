@@ -72,7 +72,7 @@ irm https://raw.githubusercontent.com/evenevan/export-ms-teams-chats/main/ps.ps1
 
 ### 3. Authenticate
 
-his script requires an access token to function. In many corporate environments, third-party applications are restricted, so a common workaround is to manually obtain a token via the Microsoft Graph Explorer:
+This script requires an access token to function. In many corporate environments, third-party applications are restricted, so a common workaround is to manually obtain a token via the Microsoft Graph Explorer:
 
 🔗 [Microsoft Graph Explorer](https://developer.microsoft.com/en-us/graph/graph-explorer)
 
