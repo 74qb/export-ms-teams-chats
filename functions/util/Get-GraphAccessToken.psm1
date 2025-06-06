@@ -7,91 +7,55 @@ $ProgressPreference = "SilentlyContinue"
 # https://learn.microsoft.com/EN-US/azure/active-directory/develop/scopes-oidc#openid
 # $openIdScopes = "offline_access openid"
 
-$scopes = "Chat.Read User.ReadBasic.All offline_access"
-$accessToken = $null
-$refreshToken = $null
-$expires = $null
-$interval = $null
+Set-Variable -Name accessToken -Value $null -Scope Script
+Set-Variable -Name expires -Value $null -Scope Script
+
+function Get-TokenClaimsAndSetExpires {
+    param([string]$token)
+    $tokenParts = $token -split '\.'
+    if ($tokenParts.Length -ne 3) {
+        Write-Warning "Token does not appear to be a valid JWT (expected 3 parts, got $($tokenParts.Length))."
+        $script:expires = $null
+        return
+    }
+    $header = $tokenParts[0]
+    $payload = $tokenParts[1]
+    $signature = $tokenParts[2]
+
+    # Decode payload
+    $payload = $payload.Replace('-', '+').Replace('_', '/')
+    switch ($payload.Length % 4) {
+        2 { $payload += '==' }
+        3 { $payload += '=' }
+    }
+    try {
+        $json = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($payload))
+        $claims = $json | ConvertFrom-Json
+        $exp = $($claims.exp)
+        $epoch = [datetime]::SpecifyKind([datetime]'1970-01-01 00:00:00', [System.DateTimeKind]::Utc)
+        $expiresLocal = $epoch.AddSeconds([int64]$exp)
+        if ($expiresLocal -ge (((Get-Date).ToUniversalTime() + [TimeSpan]::FromMinutes(5)))) {
+            return @{ Token = $token; Expires = $expiresLocal }
+        } else {
+            Write-Warning "Token is expiring soon."
+        }
+    } catch {
+        Write-Warning "Could not parse token payload. Raw base64: $payload"
+        Write-Warning "Error: $($_.Exception.Message)"
+        $script:expires = $null
+        $script:accessToken = $null
+    }
+    return @{ Token = ""; Expires = $null }
+}
+
+
 
 function Get-GraphAccessToken ($clientId, $tenantId) {
-    if ([string]::IsNullOrEmpty($refreshToken)) {
-        Write-Verbose "No access token, getting token."
-        
-        <#
-        if ($clientId -eq "31359c7f-bd7e-475c-86db-fdb8c937548e") {
-            # openid scopes and authentiation
-            $script:scopes = $openIdScopes
-            $contentType = "application/x-www-form-urlencoded"
-            $codeBody = @{ 
-                client_id = $clientId
-                scope     = $openIdScopes
-            }
-        } else {
-            # resource scopes and authentication
-            $script:scopes = $resourceScopes
-            $contentType = $null
-            $codeBody = @{ 
-                client_id = $clientId
-                scope     = $resourceScores
-            }
-        }
-        #>
-
-        $codeBody = @{ 
-            client_id = $clientId
-            scope     = $scopes
-        }
-
-        $deviceCodeRequest = Invoke-RestMethod -Method POST -Uri "https://login.microsoftonline.com/$tenantId/oauth2/v2.0/devicecode" <# -ContentType $contentType #> -Body $codeBody
-        Write-Host $deviceCodeRequest.message
-
-        $interval = $deviceCodeRequest.interval
-
-        $tokenBody = @{
-            grant_type  = "urn:ietf:params:oauth:grant-type:device_code"
-            device_code = $deviceCodeRequest.device_code
-            client_id   = $clientId
-        }
+    while ([string]::IsNullOrEmpty($script:accessToken) -or $script:expires -le (((Get-Date).ToUniversalTime() + [TimeSpan]::FromMinutes(5)))) {
+        $token = Read-Host "Paste your Access Token from https://developer.microsoft.com/en-us/graph/graph-explorer"
+        $result = Get-TokenClaimsAndSetExpires $token
+        $script:accessToken = $result.Token
+        $script:expires = $result.Expires
     }
-    elseif ($expires -ge ((Get-Date) + 600)) {
-        return $accessToken
-    }
-    else {
-        Write-Verbose "Access token expired, getting new token."
-        
-        $tokenBody = @{
-            grant_type    = "refresh_token"
-            scope         = $scopes
-            refresh_token = $refreshToken
-            client_id     = $clientId       
-        }
-    }
-      
-  
-    # Get OAuth Token
-    while ([string]::IsNullOrEmpty($authRequest.access_token)) { 
-        $authRequest = try {
-            Invoke-RestMethod -Method POST -Uri "https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token" -Body $tokenBody
-        }
-        catch {
-            Write-Verbose ($_ | Out-String)
-            Write-Verbose $_.ErrorDetails.Message
-            $errorMessage = $_.ErrorDetails.Message | ConvertFrom-Json
-  
-            # If not waiting for auth, throw error
-            if ($errorMessage.error -ne "authorization_pending") {
-                throw
-            }
-
-            Start-Sleep $interval
-        }
-    }
-    
-    # $script:accessToken = ConvertTo-SecureString $authRequest.access_token -AsPlainText -Force
-    # secure string doesn't seems necessary in this context, lmk if i'm wrong about this
-    $script:accessToken = $authRequest.access_token
-    $script:refreshToken = $authRequest.refresh_token
-    $script:expires = (Get-Date).AddSeconds($authRequest.expires_in)
-
-    $accessToken
+    $script:accessToken
 }
