@@ -112,10 +112,13 @@ foreach ($chat in $chats) {
         Write-Host -ForegroundColor White ("`r`n$name :: $($messages.count) messages.")
 
         # download profile pictures for use later
-        Write-Host "Downloading profile pictures..."
-
-        foreach ($member in $members) {
-            Get-ProfilePicture $member.userId $assetsFolder $clientId $tenantId | Out-Null
+        if ($members.Count -le 10) {
+            Write-Host "Downloading profile pictures..."
+            foreach ($member in $members) {
+                Get-ProfilePicture $member.userId $assetsFolder $clientId $tenantId | Out-Null
+            }
+        } else {
+            Write-Host "Skipping profile picture download (more than 10 members)..."
         }
 
         Write-Host "Processing messages..."
