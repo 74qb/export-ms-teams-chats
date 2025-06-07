@@ -89,7 +89,14 @@ foreach ($chat in $chats) {
     
     Write-Verbose "Exporting $($chat.id)"
 
-    $members = Get-Members $chat $clientId $tenantId
+    try {
+        $members = Get-Members $chat $clientId $tenantId
+    }
+    catch {
+        Write-Host ("Members could not resolved, continue...")
+        continue
+    }
+
     $name = ConvertTo-ChatName $chat $members $me $clientId $tenantId
     
     
