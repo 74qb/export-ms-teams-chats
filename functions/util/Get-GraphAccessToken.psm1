@@ -50,7 +50,7 @@ function Get-TokenClaimsAndSetExpires {
 
 
 
-function Get-GraphAccessToken ($clientId, $tenantId) {
+function Get-GraphAccessToken () {
     while ([string]::IsNullOrEmpty($script:accessToken) -or $script:expires -le (((Get-Date).ToUniversalTime() + [TimeSpan]::FromMinutes(5)))) {
         $token = Read-Host "Paste your Access Token from https://developer.microsoft.com/en-us/graph/graph-explorer"
         $result = Get-TokenClaimsAndSetExpires $token

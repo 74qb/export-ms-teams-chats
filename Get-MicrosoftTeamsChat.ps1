@@ -16,14 +16,8 @@
     .PARAMETER avoidOverwrite
         If a chat with the same file name already exists, this will create the new file with a number at the end instead (such as (1))
 
-    .PARAMETER clientId
-        The client id of the Azure AD App Registration.
-
-    .PARAMETER tenantId
-        The tenant id. See https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc#find-your-apps-openid-configuration-document-uri for possible tenants.
-
     .EXAMPLE
-        .\Get-MicrosoftTeamsChat.ps1 -exportFolder "D:\ExportedHTML" -clientId "31359c7f-bd7e-475c-86db-fdb8c937548e" -tenantId "contoso.onmicrosoft.com" -skipIds '19:c968a252f5dc4310bd6714883389dcfe@thread.v2'
+        .\Get-MicrosoftTeamsChat.ps1 -exportFolder "D:\ExportedHTML" -skipIds '19:c968a252f5dc4310bd6714883389dcfe@thread.v2'
 
     .NOTES
         Original Author: Trent Steenholdt
@@ -36,9 +30,7 @@ Param(
     [Parameter(Mandatory = $false, HelpMessage = "Export location of where the HTML files will be saved.")] [string] $exportFolder = "out",
     [Parameter(Mandatory = $false, HelpMessage = "If specified, only chats named (exact match) will be exported")] [string[]] $toExport = $null,
     [Parameter(Mandatory = $false, HelpMessage = "Any chat IDs specified will be skipped")] [string[]] $skipIds = @(),
-    [Parameter(Mandatory = $false, HelpMessage = "If a chat with the same file name already exists, this will create the new file with a number at the end instead (such as (1))")] [switch] $avoidOverwrite,
-    [Parameter(Mandatory = $false, HelpMessage = "The client id of the Azure AD App Registration")] [string] $clientId = "7f586887-37d3-4d1f-89cf-153c7d1bbe54",
-    [Parameter(Mandatory = $false, HelpMessage = "The tenant id of the Azure AD environment the user logs into")] [string] $tenantId = "organizations"
+    [Parameter(Mandatory = $false, HelpMessage = "If a chat with the same file name already exists, this will create the new file with a number at the end instead (such as (1))")] [switch] $avoidOverwrite
 )
 
 #################################
@@ -74,11 +66,11 @@ $exportFolder = (Resolve-Path -Path $exportFolder).ToString()
 Write-Host "Your chats will be exported to $exportFolder."
 
 $me = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/v1.0/me" -Headers @{
-    "Authorization" = "Bearer $(Get-GraphAccessToken $clientId $tenantId)"
+    "Authorization" = "Bearer $(Get-GraphAccessToken)"
 }
 
 Write-Host ("Getting all chats, please wait... This may take some time.")
-$chats = Get-Chats $clientId $tenantId
+$chats = Get-Chats
 Write-Host ("" + $chats.count + " possible chat chats found.")
 
 $chatIndex = 0
@@ -89,8 +81,8 @@ foreach ($chat in $chats) {
     
     Write-Verbose "Exporting $($chat.id)"
 
-    $members = Get-Members $chat $clientId $tenantId
-    $name = ConvertTo-ChatName $chat $members $me $clientId $tenantId
+    $members = Get-Members $chat
+    $name = ConvertTo-ChatName $chat $members $me
     
     
     if ($null -ne $toExport -and $toExport -notcontains $name) {
@@ -103,7 +95,7 @@ foreach ($chat in $chats) {
         continue
     }
 
-    $messages = Get-Messages $chat $clientId $tenantId
+    $messages = Get-Messages $chat
 
     $messagesHTML = $null
 
@@ -115,7 +107,7 @@ foreach ($chat in $chats) {
         if ($members.Count -le 10) {
             Write-Host "Downloading profile pictures..."
             foreach ($member in $members) {
-                Get-ProfilePicture $member.userId $assetsFolder $clientId $tenantId | Out-Null
+                Get-ProfilePicture $member.userId $assetsFolder | Out-Null
             }
         } else {
             Write-Host "Skipping profile picture download (more than 10 members)..."
@@ -124,7 +116,7 @@ foreach ($chat in $chats) {
         Write-Host "Processing messages..."
 
         foreach ($message in $messages) {
-            $profilePicture = Get-ProfilePicture $message.from.user.id $assetsFolder $clientId $tenantId
+            $profilePicture = Get-ProfilePicture $message.from.user.id $assetsFolder
             $time = ConvertTo-CleanDateTime $message.createdDateTime
 
             switch ($message.messageType) {
@@ -135,7 +127,7 @@ foreach ($chat in $chats) {
 
                     foreach ($imageTagMatch in $imageTagMatches) {
                         Write-Verbose "Downloading embedded image in message..."
-                        $imagePath = Get-Image $imageTagMatch $assetsFolder $clientId $tenantId
+                        $imagePath = Get-Image $imageTagMatch $assetsFolder
                         $messageBody = $messageBody.Replace($imageTagMatch.Groups[0], "<img src=`"$imagePath`" style=`"width: 100%;`" >")
                     }
         
@@ -157,7 +149,7 @@ foreach ($chat in $chats) {
                 "systemEventMessage" {
                     $messageHTML = $messageHTMLTemplate
                     $messageHTML = $messageHTML.Replace("###ATTACHMENTS###", $null)
-                    $messageHTML = $messageHTML.Replace("###CONVERSATION###", (ConvertTo-SystemEventMessage $message.eventDetail $clientId $tenantId))
+                    $messageHTML = $messageHTML.Replace("###CONVERSATION###", (ConvertTo-SystemEventMessage $message.eventDetail))
                     $messageHTML = $messageHTML.Replace("###DATE###", $time)
                     $messageHTML = $messageHTML.Replace("###DELETED###", $null)
                     $messageHTML = $messageHTML.Replace("###EDITED###", $null)

@@ -2,7 +2,7 @@
 Param([bool]$verbose)
 $VerbosePreference = if ($verbose) { 'Continue' } else { 'SilentlyContinue' }
 
-function ConvertTo-SystemEventMessage ($eventDetail, $clientId, $tenantId) {
+function ConvertTo-SystemEventMessage ($eventDetail) {
     # https://learn.microsoft.com/en-us/graph/system-messages#supported-system-message-events
     switch ($eventDetail."@odata.type") {
         "#microsoft.graph.callEndedEventMessageDetail" {
@@ -10,15 +10,15 @@ function ConvertTo-SystemEventMessage ($eventDetail, $clientId, $tenantId) {
             Break
         }
         "#microsoft.graph.callStartedEventMessageDetail" {
-            "$(Get-Initiator $eventDetail.initiator $clientId, $tenantId) started a call."
+            "$(Get-Initiator $eventDetail.initiator) started a call."
             Break
         }
         "#microsoft.graph.chatRenamedEventMessageDetail" {
-            "$(Get-Initiator $eventDetail.initiator $clientId, $tenantId) changed the chat name to $($eventDetail.chatDisplayName)."
+            "$(Get-Initiator $eventDetail.initiator) changed the chat name to $($eventDetail.chatDisplayName)."
             Break
         }
         "#microsoft.graph.membersAddedEventMessageDetail" {
-            "$(Get-Initiator $eventDetail.initiator $clientId, $tenantId) added $(($eventDetail.members | ForEach-Object { Get-DisplayName $_.id $clientId $tenantId }) -join ", ")."
+            "$(Get-Initiator $eventDetail.initiator) added $(($eventDetail.members | ForEach-Object { Get-DisplayName $_.id }) -join ", ")."
 
             Break
         }
@@ -28,26 +28,26 @@ function ConvertTo-SystemEventMessage ($eventDetail, $clientId, $tenantId) {
                 ($null -ne $eventDetail.initiator.user) -and
                 ($eventDetail.initiator.user.id -eq $eventDetail.members[0].id)
             ) {
-                "$(Get-DisplayName $eventDetail.members[0].id $clientId $tenantId) left."
+                "$(Get-DisplayName $eventDetail.members[0].id ) left."
             }
             else {
-                "$(Get-Initiator $eventDetail.initiator $clientId, $tenantId) removed $(($eventDetail.members | ForEach-Object { Get-DisplayName $_.id $clientId $tenantId }) -join ", ")."
+                "$(Get-Initiator $eventDetail.initiator) removed $(($eventDetail.members | ForEach-Object { Get-DisplayName $_.id }) -join ", ")."
             }
             
             Break
         }
         "#microsoft.graph.messagePinnedEventMessageDetail" {
-            "$(Get-Initiator $eventDetail.initiator $clientId, $tenantId) pinned a message."
+            "$(Get-Initiator $eventDetail.initiator) pinned a message."
             Break
         }
         "#microsoft.graph.messageUnpinnedEventMessageDetail" {
-            "$(Get-Initiator $eventDetail.initiator $clientId, $tenantId) unpinned a message."
+            "$(Get-Initiator $eventDetail.initiator) unpinned a message."
         }
         "#microsoft.graph.teamsAppInstalledEventMessageDetail" {
-            "$(Get-Initiator $eventDetail.initiator $clientId, $tenantId) added $($eventDetail.teamsAppDisplayName) here."
+            "$(Get-Initiator $eventDetail.initiator) added $($eventDetail.teamsAppDisplayName) here."
         }
         "#microsoft.graph.teamsAppRemovedEventMessageDetail" {
-            "$(Get-Initiator $eventDetail.initiator $clientId, $tenantId) removed $($eventDetail.teamsAppDisplayName)."
+            "$(Get-Initiator $eventDetail.initiator) removed $($eventDetail.teamsAppDisplayName)."
         }
         Default {
             Write-Warning "Unhandled system event type: $($eventDetail."@odata.type")"

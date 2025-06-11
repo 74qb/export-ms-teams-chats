@@ -4,9 +4,9 @@ $VerbosePreference = if ($verbose) { 'Continue' } else { 'SilentlyContinue' }
 
 # used with eventDetail objects; member displayNames are sometimes null for no reason
 
-function Get-DisplayName ($userId, $clientId, $tenantId) {
+function Get-DisplayName ($userId) {
     try {
-        $user = Get-User $userId $clientId $tenantId
+        $user = Get-User $userId
         
         if ($null -ne $user.displayName) {
             $user.displayName

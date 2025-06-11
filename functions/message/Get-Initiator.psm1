@@ -4,13 +4,13 @@ $VerbosePreference = if ($verbose) { 'Continue' } else { 'SilentlyContinue' }
 
 # used to get the initator of an event
 
-function Get-Initiator ($identitySet, $clientId, $tenantId) {
+function Get-Initiator ($identitySet) {
     if ($identitySet.user) {
         if ($identitySet.user.displayName) {
             $identitySet.user.displayName
         }
         else {
-            Get-DisplayName $identitySet.user.id $clientId $tenantId
+            Get-DisplayName $identitySet.user.id
         }
     }
     elseif ($identitySet.application) {

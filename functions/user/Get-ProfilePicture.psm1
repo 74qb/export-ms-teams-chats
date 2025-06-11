@@ -7,7 +7,7 @@ $defaultProfilePicture = ("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 
 $attempted = @{}
 
-function Get-ProfilePicture ($userId, $assetsFolderPath, $clientId, $tenantId) {
+function Get-ProfilePicture ($userId, $assetsFolderPath) {
     $profilePictureFile = Join-Path -Path "$assetsFolderPath" -ChildPath "$userId.jpg"
 
     if (Test-Path $profilePictureFile) {
@@ -34,7 +34,7 @@ function Get-ProfilePicture ($userId, $assetsFolderPath, $clientId, $tenantId) {
 
             Invoke-Retry -Code {
                 Invoke-WebRequest -Uri $profilePhotoUri -Headers @{
-                    "Authorization" = "Bearer $(Get-GraphAccessToken $clientId $tenantId)"
+                    "Authorization" = "Bearer $(Get-GraphAccessToken)"
                 } -OutFile $profilePictureFile
             }
 

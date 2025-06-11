@@ -3,7 +3,7 @@ Param([bool]$verbose)
 $VerbosePreference = if ($verbose) { 'Continue' } else { 'SilentlyContinue' }
 $ProgressPreference = "SilentlyContinue"
 
-function Get-Chats ($clientId, $tenantId) {
+function Get-Chats () {
     $link = "https://graph.microsoft.com/v1.0/me/chats"
     $chats = @()
 
@@ -13,7 +13,7 @@ function Get-Chats ($clientId, $tenantId) {
         while ($null -ne $link) {
             $chatsToAdd = Invoke-Retry -Code {
                 Invoke-RestMethod -Method Get -Uri $link -Headers @{
-                    "Authorization" = "Bearer $(Get-GraphAccessToken $clientId $tenantId)"
+                    "Authorization" = "Bearer $(Get-GraphAccessToken)"
                 }
             }
             

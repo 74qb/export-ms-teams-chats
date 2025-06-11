@@ -3,7 +3,7 @@ Param([bool]$verbose)
 $VerbosePreference = if ($verbose) { 'Continue' } else { 'SilentlyContinue' }
 $ProgressPreference = "SilentlyContinue"
 
-function Get-Messages ($chat, $clientId, $tenantId) {
+function Get-Messages ($chat) {
     # 50 is the maximum allowed with the beta api
     $link = "https://graph.microsoft.com/v1.0/chats/" + $chat.id + "/messages?top=50"
     $messages = @()
@@ -14,7 +14,7 @@ function Get-Messages ($chat, $clientId, $tenantId) {
         while ($null -ne $link) {
             $messagesToAdd = Invoke-Retry -Code { 
                 Invoke-RestMethod -Method Get -Uri $link -Headers @{
-                    "Authorization" = "Bearer $(Get-GraphAccessToken $clientId $tenantId)"
+                    "Authorization" = "Bearer $(Get-GraphAccessToken)"
                     "Prefer"        = "include-unknown-enum-members"
                 }
             }

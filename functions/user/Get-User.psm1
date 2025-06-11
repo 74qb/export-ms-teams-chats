@@ -5,7 +5,7 @@ $ProgressPreference = "SilentlyContinue"
 
 $users = @{}
 
-function Get-User ($userId, $clientId, $tenantId) {
+function Get-User ($userId) {
     if ($users.ContainsKey($userId)) {
         Write-Verbose "User cache hit."
         $users[$userId]
@@ -19,7 +19,7 @@ function Get-User ($userId, $clientId, $tenantId) {
     
         $user = Invoke-Retry -Code {
             Invoke-RestMethod -Method Get -Uri $userUri -Headers @{
-                "Authorization" = "Bearer $(Get-GraphAccessToken $clientId $tenantId)"
+                "Authorization" = "Bearer $(Get-GraphAccessToken)"
             }
         }
     

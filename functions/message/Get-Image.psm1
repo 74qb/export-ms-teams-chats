@@ -3,7 +3,7 @@ Param([bool]$verbose)
 $VerbosePreference = if ($verbose) { 'Continue' } else { 'SilentlyContinue' }
 $ProgressPreference = "SilentlyContinue"
 
-function Get-Image ($imageTagMatch, $assetsFolderPath, $clientId, $tenantId) {
+function Get-Image ($imageTagMatch, $assetsFolderPath) {
     $imageUriPath = $imageTagMatch.Groups[1].Value
     $imageUriPathStream = [IO.MemoryStream]::new([byte[]][char[]]$imageUriPath)
     $imageFileName = "$((Get-FileHash -InputStream $imageUriPathStream -Algorithm SHA256).Hash).jpg"
@@ -19,7 +19,7 @@ function Get-Image ($imageTagMatch, $assetsFolderPath, $clientId, $tenantId) {
 
             Invoke-Retry -Code {
                 Invoke-WebRequest -Uri $imageUri -Headers @{
-                    "Authorization" = "Bearer $(Get-GraphAccessToken $clientId $tenantId)"
+                    "Authorization" = "Bearer $(Get-GraphAccessToken)"
                 } -OutFile $imageFilePath
             }
 
